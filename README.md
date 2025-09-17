@@ -12,43 +12,54 @@ AI 기반 회의 녹음, 음성 인식, 요약 및 Notion 저장을 위한 종�
 
 ## 🚀 빠른 시작
 
-### 0. 환경 설정 (필수)
+### 0. 환경 설정
 
-먼저 API 키를 설정해야 합니다:
+API 키 설정은 선택사항입니다. 환경 변수 없이도 로컬 모델로 기본 기능을 사용할 수 있습니다.
 
 ```bash
 # 자동 설정 도우미 사용 (권장)
 ./setup_env.sh
 
+# 환경 변수 설정을 건너뛰고 싶다면 'n' 선택
 # 또는 수동 설정
 cp env.example .env
 # .env 파일을 편집하여 API 키 입력
 ```
 
-**필요한 API 키:**
-- `OPENAI_API_KEY`: OpenAI API 키
-- `NOTION_API_KEY`: Notion Integration Token  
+**선택적 API 키 (설정하면 더 많은 기능 사용 가능):**
+- `OPENAI_API_KEY`: OpenAI API 키 (GPT 요약 및 고품질 음성 인식)
+- `NOTION_API_KEY`: Notion Integration Token (Notion 자동 저장)
 - `NOTION_DATABASE_ID`: Notion 데이터베이스 ID
+
+**환경 변수 없이도 사용 가능한 기능:**
+- 로컬 Whisper 모델로 음성 인식
+- 로컬 파일로 결과 저장
+- 기본 회의 요약 기능
 
 ### 1. 설치
 
+#### 🚀 자동 설치 (권장)
 ```bash
 # 저장소 클론
 git clone <repository-url>
 cd ai-meeting-summary
 
-# 가상환경 생성 및 활성화 (권장)
+# 가상환경 자동 생성 및 활성화 + 의존성 설치
+./activate.sh
+```
+
+#### 🔧 수동 설치
+```bash
+# 저장소 클론
+git clone <repository-url>
+cd ai-meeting-summary
+
+# 가상환경 생성 및 활성화
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # 의존성 설치
 pip install -r requirements.txt
-```
-
-**또는 자동 설정 스크립트 사용:**
-```bash
-# 가상환경 자동 생성 및 활성화
-./activate.sh
 ```
 
 #### 🍎 macOS 사용자 주의사항
@@ -231,9 +242,17 @@ ai-meeting-summary/
 │       └── file_manager.py
 ├── data/                  # 임시 파일 저장소
 ├── output/                # 결과 파일 저장소
+├── temp/                  # 임시 처리 파일
+├── tests/                 # 테스트 파일
 ├── main.py               # 메인 실행 파일
 ├── requirements.txt      # 의존성 목록
-└── env.example          # 환경 변수 템플릿
+├── env.example          # 환경 변수 템플릿
+├── activate.sh           # 가상환경 자동 설정
+├── setup_env.sh          # 환경 변수 설정 도우미
+├── start_meeting.sh      # 대화형 회의 시작
+├── quick_start.sh        # 빠른 시작
+├── setup_notion_database.py  # Notion DB 설정
+└── fix_notion_db.py      # Notion DB 수정
 ```
 
 ## 🔧 설정
@@ -331,6 +350,27 @@ A: 배경 소음을 줄이고, 마이크에 가까이서 명확하게 발음하�
 
 **Q: 가상환경이 활성화되지 않아요**
 A: `source venv/bin/activate` 명령어를 실행하거나 `./activate.sh` 스크립트를 사용하세요.
+
+**Q: OpenAI API 할당량 초과 오류가 발생해요**
+A: 로컬 Whisper 모델이 자동으로 사용됩니다. OpenAI 계정에서 할당량을 확인하고 충전하세요.
+
+**Q: ffmpeg를 찾을 수 없다는 오류가 발생해요**
+A: `brew install ffmpeg` 명령어로 ffmpeg를 설치하세요.
+
+**Q: 환경 변수 설정을 건너뛰고 싶어요**
+A: `./setup_env.sh` 실행 시 'n'을 선택하면 환경 변수 설정을 건너뛸 수 있습니다.
+
+**Q: Notion에 저장된 요약에 # 기호가 포함되어 있어요**
+A: 최신 버전에서는 마크다운 헤더가 자동으로 제거됩니다. 코드를 업데이트하세요.
+
+**Q: Notion 데이터베이스 속성이 없다는 오류가 발생해요**
+A: `python fix_notion_db.py` 명령어로 데이터베이스 속성을 자동으로 추가하세요.
+
+**Q: 음성 인식 결과 병합 오류가 발생해요**
+A: 최신 버전에서 수정되었습니다. 코드를 업데이트하세요.
+
+**Q: 환경 변수 없이도 사용할 수 있나요?**
+A: 네! 로컬 Whisper 모델로 음성 인식하고 로컬 파일로 저장할 수 있습니다. API 키는 선택사항입니다.
 
 ### 로그 확인
 

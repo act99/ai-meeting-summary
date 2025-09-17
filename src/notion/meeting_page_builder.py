@@ -31,9 +31,13 @@ class MeetingPageBuilder(LoggerMixin):
         try:
             self.log_info("회의 페이지 데이터 구성 시작")
             
-            # 기본 정보 추출
+            # 기본 정보 추출 및 타임스탬프 기반 유니크 ID 생성
             meeting_id = comprehensive_data.get("meeting_id", "")
             timestamp = comprehensive_data.get("timestamp", datetime.now().isoformat())
+            
+            # 타임스탬프가 없으면 현재 시간으로 생성
+            if not meeting_id:
+                meeting_id = datetime.now().strftime("%Y%m%d_%H%M%S")
             
             # 날짜 파싱
             try:
@@ -42,10 +46,15 @@ class MeetingPageBuilder(LoggerMixin):
             except:
                 date_str = datetime.now().strftime("%Y-%m-%d")
             
+            # 회의 제목에 타임스탬프 포함
+            meeting_title = comprehensive_data.get("meeting_title", f"회의 - {meeting_id}")
+            if not meeting_title.startswith("회의"):
+                meeting_title = f"회의 - {meeting_title}"
+            
             # 페이지 데이터 구성
             page_data = {
                 "meeting_id": meeting_id,
-                "meeting_title": f"회의 - {meeting_id}",
+                "meeting_title": meeting_title,
                 "date": date_str,
                 "timestamp": timestamp,
                 "duration_minutes": comprehensive_data.get("metadata", {}).get("duration", 0) / 60,

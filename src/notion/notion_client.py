@@ -63,13 +63,23 @@ class NotionClient(LoggerMixin):
             raise
     
     def _build_page_properties(self, meeting_data: Dict[str, Any]) -> Dict[str, Any]:
-        """페이지 속성 구성"""
+        """페이지 속성 구성 (기존 한국어 속성명 사용)"""
+        # 타임스탬프를 포함한 유니크한 회의 ID 생성
+        meeting_id = meeting_data.get("meeting_id", "")
+        if not meeting_id:
+            meeting_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        
+        # 회의 제목에 타임스탬프 포함
+        meeting_title = meeting_data.get("meeting_title", f"회의 - {meeting_id}")
+        if not meeting_title.startswith("회의"):
+            meeting_title = f"회의 - {meeting_title} ({meeting_id})"
+        
         properties = {
             "제목": {
                 "title": [
                     {
                         "text": {
-                            "content": meeting_data.get("meeting_title", f"회의 - {meeting_data.get('meeting_id', 'N/A')}")
+                            "content": meeting_title
                         }
                     }
                 ]
@@ -78,7 +88,7 @@ class NotionClient(LoggerMixin):
                 "rich_text": [
                     {
                         "text": {
-                            "content": meeting_data.get("meeting_id", "")
+                            "content": meeting_id
                         }
                     }
                 ]
@@ -123,6 +133,13 @@ class NotionClient(LoggerMixin):
             self.log_error(f"페이지 내용 추가 실패: {e}")
             raise
     
+    def _clean_markdown_headers(self, text: str) -> str:
+        """마크다운 헤더 제거"""
+        import re
+        # #, ##, ### 헤더 제거
+        cleaned_text = re.sub(r'^#{1,6}\s*', '', text, flags=re.MULTILINE)
+        return cleaned_text.strip()
+    
     def _build_content_blocks(self, meeting_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """콘텐츠 블록 구성"""
         blocks = []
@@ -143,9 +160,10 @@ class NotionClient(LoggerMixin):
             }
         })
         
-        # 요약 내용
+        # 요약 내용 (마크다운 헤더 제거)
         summary = meeting_data.get("summary", "")
         if summary:
+            cleaned_summary = self._clean_markdown_headers(summary)
             blocks.append({
                 "object": "block",
                 "type": "paragraph",
@@ -154,7 +172,7 @@ class NotionClient(LoggerMixin):
                         {
                             "type": "text",
                             "text": {
-                                "content": summary
+                                "content": cleaned_summary
                             }
                         }
                     ]
@@ -279,6 +297,9 @@ class NotionClient(LoggerMixin):
                 }
             })
             
+            # 분석 내용 (마크다운 헤더 제거)
+            analysis = meeting_data.get("analysis", "")
+            cleaned_analysis = self._clean_markdown_headers(analysis)
             blocks.append({
                 "object": "block",
                 "type": "paragraph",
@@ -287,7 +308,7 @@ class NotionClient(LoggerMixin):
                         {
                             "type": "text",
                             "text": {
-                                "content": meeting_data.get("analysis", "")
+                                "content": cleaned_analysis
                             }
                         }
                     ]
