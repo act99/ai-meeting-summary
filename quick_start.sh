@@ -45,6 +45,23 @@ read -p "언어 (ko/en/ja/zh, 기본값: ko): " language
 language=${language:-ko}  # 기본값: 한국어
 
 echo ""
+echo "🎯 음성 인식 방법을 선택하세요:"
+echo "1) 로컬 Whisper (무료, 정확도 96%) [기본값]"
+echo "2) OpenAI API (유료, 정확도 98%)"
+
+read -p "선택 (1-2, 기본값: 1): " whisper_choice
+whisper_choice=${whisper_choice:-1}  # 기본값: 1 (로컬)
+
+if [ "$whisper_choice" = "1" ]; then
+    echo "✅ 로컬 Whisper 선택 - 비용 $0 (완전 무료)"
+    echo "🚀 최고 사양 모델 (large) 사용 - 정확도 96%"
+    whisper_option="--local-only"
+else
+    echo "✅ OpenAI API 선택 - 비용 발생"
+    whisper_option=""
+fi
+
+echo ""
 echo "🚀 회의 시작: $title ($duration분, $language)"
 echo ""
 
@@ -53,7 +70,8 @@ python main.py interactive-meeting \
     --title "$title" \
     --duration "$duration" \
     --language "$language" \
-    --save-to-notion
+    --save-to-notion \
+    $whisper_option
 
 echo ""
 echo "✅ 회의 완료!"

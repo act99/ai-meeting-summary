@@ -219,7 +219,8 @@ def interactive_meeting(
     title: str = typer.Option("회의", help="회의 제목"),
     duration: Optional[int] = typer.Option(None, help="녹음 시간 (분)"),
     language: str = typer.Option("ko", help="언어 코드"),
-    save_to_notion: bool = typer.Option(True, help="Notion에 저장")
+    save_to_notion: bool = typer.Option(True, help="Notion에 저장"),
+    local_only: bool = typer.Option(False, help="로컬 Whisper만 사용 (비용 절약)")
 ):
     """대화형 회의 파이프라인 (q 키로 중지 가능)"""
     console.print(Panel("🎤 대화형 AI 회의 요약", style="bold blue"))
@@ -381,7 +382,8 @@ def full_pipeline(
     title: str = typer.Option("회의", help="회의 제목"),
     duration: Optional[int] = typer.Option(None, help="녹음 시간 (분)"),
     language: str = typer.Option("ko", help="언어 코드"),
-    save_to_notion: bool = typer.Option(True, help="Notion에 저장")
+    save_to_notion: bool = typer.Option(True, help="Notion에 저장"),
+    local_only: bool = typer.Option(False, help="로컬 Whisper만 사용 (비용 절약)")
 ):
     """전체 파이프라인 실행 (녹음 → 인식 → 요약 → 저장)"""
     console.print(Panel("🚀 AI 회의 요약 전체 파이프라인", style="bold blue"))

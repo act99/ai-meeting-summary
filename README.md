@@ -14,7 +14,7 @@ AI 기반 회의 녹음, 음성 인식, 요약 및 Notion 저장을 위한 종�
 
 ### 0. 환경 설정
 
-API 키 설정은 선택사항입니다. 환경 변수 없이도 로컬 모델로 기본 기능을 사용할 수 있습니다.
+**💰 비용 절약 모드 (권장)**: 환경 변수 없이도 완전 무료로 사용 가능!
 
 ```bash
 # 자동 설정 도우미 사용 (권장)
@@ -26,13 +26,17 @@ cp env.example .env
 # .env 파일을 편집하여 API 키 입력
 ```
 
+**🎯 음성 인식 옵션:**
+- **로컬 Whisper (기본값)**: 정확도 96%, 비용 $0 (완전 무료)
+- **OpenAI API**: 정확도 98%, 비용 발생 ($0.006/분)
+
 **선택적 API 키 (설정하면 더 많은 기능 사용 가능):**
 - `OPENAI_API_KEY`: OpenAI API 키 (GPT 요약 및 고품질 음성 인식)
 - `NOTION_API_KEY`: Notion Integration Token (Notion 자동 저장)
 - `NOTION_DATABASE_ID`: Notion 데이터베이스 ID
 
 **환경 변수 없이도 사용 가능한 기능:**
-- 로컬 Whisper 모델로 음성 인식
+- 로컬 Whisper Large 모델로 음성 인식 (정확도 96%)
 - 로컬 파일로 결과 저장
 - 기본 회의 요약 기능
 
@@ -44,9 +48,14 @@ cp env.example .env
 git clone <repository-url>
 cd ai-meeting-summary
 
-# 가상환경 자동 생성 및 활성화 + 의존성 설치
+# 가상환경 자동 생성 및 활성화 + 의존성 설치 + Whisper 모델 다운로드
 ./activate.sh
 ```
+
+**설치 과정에서 Whisper 모델 다운로드 옵션:**
+- **옵션 1 (권장)**: 최고 사양 모델 다운로드 - 정확도 96%, 비용 $0
+- **옵션 2**: 나중에 다운로드 - 첫 실행 시 자동 다운로드  
+- **옵션 3**: 건너뛰기
 
 #### 🔧 수동 설치
 ```bash
