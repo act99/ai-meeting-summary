@@ -1,0 +1,32 @@
+# Core dependencies
+openai>=1.12.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Audio processing
+pyaudio>=0.2.11
+wave>=0.0.2
+librosa>=0.10.1
+
+# Whisper for transcription
+openai-whisper>=20231117
+
+# Notion integration
+notion-client>=2.2.1
+
+# Utilities
+rich>=13.7.0
+click>=8.1.7
+pydantic>=2.5.0
+typer>=0.9.0
+
+# Development dependencies
+pytest>=7.4.0
+black>=23.0.0
+isort>=5.12.0
+mypy>=1.7.0
+pylint>=3.0.0
+
+# Optional: For better audio quality
+noisereduce>=3.0.0
+scipy>=1.11.0
