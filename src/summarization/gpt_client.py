@@ -19,10 +19,20 @@ class GPTClient(LoggerMixin):
     """GPT API 클라이언트"""
     
     def __init__(self):
-        self.client = openai.OpenAI(api_key=config.api.openai_api_key)
+        self.client = None
         self.model = config.api.openai_model
         self.prompt_templates = PromptTemplates()
-        self.log_info(f"GPT 클라이언트 초기화 완료 - 모델: {self.model}")
+        
+        # API 키가 있는 경우에만 클라이언트 초기화
+        if config.api.openai_api_key:
+            try:
+                self.client = openai.OpenAI(api_key=config.api.openai_api_key)
+                self.log_info(f"GPT 클라이언트 초기화 완료 - 모델: {self.model}")
+            except Exception as e:
+                self.log_warning(f"GPT 클라이언트 초기화 실패: {e}")
+                self.client = None
+        else:
+            self.log_warning("OpenAI API 키가 없음 - GPT 요약 기능 사용 불가")
     
     def summarize_meeting(self, transcription_data: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -218,6 +228,9 @@ class GPTClient(LoggerMixin):
         Returns:
             GPT 응답 텍스트
         """
+        if not self.client:
+            raise Exception("OpenAI API 키가 없어서 GPT 요약을 사용할 수 없습니다. 로컬 Whisper 음성 인식만 가능합니다.")
+        
         try:
             response = self.client.chat.completions.create(
                 model=self.model,

@@ -101,7 +101,7 @@ def transcribe_file(
             
             # 음성 인식
             task2 = progress.add_task("음성 인식 중...", total=100)
-            transcriber = MeetingTranscriber()
+            transcriber = MeetingTranscriber(local_only=local_only)
             
             if len(chunks) > 1:
                 # 청크별 처리
@@ -306,7 +306,7 @@ def interactive_meeting(
             
             # 음성 인식
             task2 = progress.add_task("음성 인식 중...", total=100)
-            transcriber = MeetingTranscriber()
+            transcriber = MeetingTranscriber(local_only=local_only)
             
             if len(chunks) > 1:
                 chunk_paths = [processor._save_processed_audio(chunk, config.audio.sample_rate, f"chunk_{i}.wav") for i, chunk in enumerate(chunks)]
@@ -334,8 +334,21 @@ def interactive_meeting(
             
             # GPT 요약
             task3 = progress.add_task("GPT 요약 생성 중...", total=100)
-            summarizer = MeetingSummarizer()
-            comprehensive_result = summarizer.summarize_meeting_comprehensive(structured_content)
+            try:
+                summarizer = MeetingSummarizer()
+                comprehensive_result = summarizer.summarize_meeting_comprehensive(structured_content)
+            except Exception as e:
+                console.print(f"⚠️ GPT 요약 실패: {e}", style="yellow")
+                console.print("💡 로컬 파일로 음성 인식 결과만 저장합니다.", style="yellow")
+                # 기본 결과 생성
+                comprehensive_result = {
+                    "meeting_id": structured_content.get("meeting_id", "unknown"),
+                    "summary": "GPT 요약을 사용할 수 없습니다. 음성 인식 결과만 제공됩니다.",
+                    "action_items": [],
+                    "decisions": [],
+                    "analysis": "GPT 분석을 사용할 수 없습니다.",
+                    "metadata": structured_content
+                }
             progress.update(task3, completed=100)
         
         console.print(f"✅ 요약 완료: {len(comprehensive_result['action_items'])}개 액션 아이템", style="green")
@@ -433,7 +446,7 @@ def full_pipeline(
             
             # 음성 인식
             task2 = progress.add_task("음성 인식 중...", total=100)
-            transcriber = MeetingTranscriber()
+            transcriber = MeetingTranscriber(local_only=local_only)
             
             if len(chunks) > 1:
                 chunk_paths = [processor._save_processed_audio(chunk, config.audio.sample_rate, f"chunk_{i}.wav") for i, chunk in enumerate(chunks)]
@@ -461,8 +474,21 @@ def full_pipeline(
             
             # GPT 요약
             task3 = progress.add_task("GPT 요약 생성 중...", total=100)
-            summarizer = MeetingSummarizer()
-            comprehensive_result = summarizer.summarize_meeting_comprehensive(structured_content)
+            try:
+                summarizer = MeetingSummarizer()
+                comprehensive_result = summarizer.summarize_meeting_comprehensive(structured_content)
+            except Exception as e:
+                console.print(f"⚠️ GPT 요약 실패: {e}", style="yellow")
+                console.print("💡 로컬 파일로 음성 인식 결과만 저장합니다.", style="yellow")
+                # 기본 결과 생성
+                comprehensive_result = {
+                    "meeting_id": structured_content.get("meeting_id", "unknown"),
+                    "summary": "GPT 요약을 사용할 수 없습니다. 음성 인식 결과만 제공됩니다.",
+                    "action_items": [],
+                    "decisions": [],
+                    "analysis": "GPT 분석을 사용할 수 없습니다.",
+                    "metadata": structured_content
+                }
             progress.update(task3, completed=100)
         
         console.print(f"✅ 요약 완료: {len(comprehensive_result['action_items'])}개 액션 아이템", style="green")

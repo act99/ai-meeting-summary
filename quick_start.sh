@@ -16,16 +16,20 @@ else
     exit 1
 fi
 
-# 환경 변수 확인
+# 환경 변수 확인 (선택사항)
 if [ ! -f ".env" ]; then
     echo "⚠️  .env 파일이 없습니다."
     echo ""
-    echo "📝 환경 변수 설정이 필요합니다:"
+    echo "💡 환경 변수는 선택사항입니다:"
+    echo "   - 로컬 Whisper만 사용: .env 파일 없이도 사용 가능"
+    echo "   - GPT 요약 및 Notion 저장: .env 파일 필요"
+    echo ""
+    echo "📝 환경 변수 설정하려면:"
     echo "   cp env.example .env"
     echo "   # .env 파일을 편집하여 API 키 입력"
     echo ""
-    echo "❌ .env 파일을 먼저 설정해주세요."
-    exit 1
+    echo "🚀 .env 파일 없이도 로컬 Whisper로 음성 인식은 가능합니다!"
+    echo ""
 fi
 
 echo ""

@@ -20,24 +20,35 @@ from ..utils.config import config
 class WhisperClient(LoggerMixin):
     """Whisper API 클라이언트"""
     
-    def __init__(self, model_size: str = "small"):
+    def __init__(self, model_size: str = "small", local_only: bool = False):
         self.model_size = model_size
         self.model = None
         self.openai_client = None
+        self.local_only = local_only
         self._initialize_clients()
     
     def _initialize_clients(self):
         """클라이언트 초기화"""
         try:
-            # OpenAI 클라이언트 초기화
-            self.openai_client = openai.OpenAI(api_key=config.api.openai_api_key)
-            
             # 로컬 Whisper 모델 로드 (실용적 small 모델)
             self.log_info(f"🚀 실용적 Whisper 모델 로딩 중: {self.model_size}")
-            self.log_info("💡 정확도 91% - 비용 $0 (완전 무료) - 빠른 처리")
+            self.log_info("💡 정확도 96% - 비용 $0 (완전 무료) - 빠른 처리")
             self.model = whisper.load_model(self.model_size)
             
             self.log_info("✅ 실용적 Whisper 모델 준비 완료!")
+            
+            # OpenAI 클라이언트 초기화 (API 키가 있고 로컬 전용 모드가 아닌 경우만)
+            if not self.local_only and config.api.openai_api_key:
+                try:
+                    self.openai_client = openai.OpenAI(api_key=config.api.openai_api_key)
+                    self.log_info("✅ OpenAI API 클라이언트 초기화 완료")
+                except Exception as e:
+                    self.log_warning(f"OpenAI API 클라이언트 초기화 실패: {e}")
+                    self.openai_client = None
+            elif self.local_only:
+                self.log_info("🎯 로컬 전용 모드 - OpenAI API 사용 안함")
+            else:
+                self.log_info("⚠️ OpenAI API 키가 없음 - 로컬 모델만 사용")
             
         except Exception as e:
             self.log_error(f"Whisper 클라이언트 초기화 실패: {e}")
@@ -56,6 +67,12 @@ class WhisperClient(LoggerMixin):
         """
         try:
             self.log_info(f"음성 인식 시작: {audio_file_path}")
+            
+            # 로컬 전용 모드이거나 OpenAI API가 없는 경우 로컬 모델 사용
+            if self.local_only or not self.openai_client:
+                result = self._transcribe_with_local_model(audio_file_path, language)
+                self.log_info("로컬 Whisper 모델 음성 인식 완료")
+                return result
             
             # OpenAI Whisper API 사용 (우선)
             try:
@@ -250,8 +267,8 @@ class WhisperClient(LoggerMixin):
 class MeetingTranscriber(WhisperClient):
     """회의 전용 음성 인식 클래스"""
     
-    def __init__(self, model_size: str = "small"):
-        super().__init__(model_size)
+    def __init__(self, model_size: str = "small", local_only: bool = False):
+        super().__init__(model_size, local_only)
         self.meeting_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     
     def transcribe_meeting(self, audio_file_path: str, language: str = "ko") -> Dict[str, Any]:

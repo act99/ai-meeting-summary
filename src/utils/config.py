@@ -25,10 +25,10 @@ class AudioConfig(BaseSettings):
 
 class APIConfig(BaseSettings):
     """API 설정"""
-    openai_api_key: str = Field(..., description="OpenAI API 키")
+    openai_api_key: str = Field(default="", description="OpenAI API 키 (선택사항)")
     openai_model: str = Field(default="gpt-4o-mini", description="OpenAI 모델")
-    notion_api_key: str = Field(..., description="Notion API 키")
-    notion_database_id: str = Field(..., description="Notion 데이터베이스 ID")
+    notion_api_key: str = Field(default="", description="Notion API 키 (선택사항)")
+    notion_database_id: str = Field(default="", description="Notion 데이터베이스 ID (선택사항)")
     
     class Config:
         env_prefix = ""
