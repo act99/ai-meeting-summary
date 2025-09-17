@@ -29,8 +29,12 @@ def main():
         
         print(f"현재 속성: {list(current_props.keys())}")
         
-        # 추가할 속성들
+        # 실제 코드에서 사용하는 속성들 (notion_client.py 기준)
         new_properties = {
+            "제목": {
+                "type": "title",
+                "title": {}
+            },
             "회의 ID": {
                 "type": "rich_text",
                 "rich_text": {}
@@ -59,20 +63,25 @@ def main():
             }
         }
         
-        # 누락된 속성만 추가
-        missing = {k: v for k, v in new_properties.items() if k not in current_props}
+        # 기존 속성들을 비활성화하고 새로운 속성만 활성화
+        print(f"기존 속성 비활성화 및 새로운 속성 활성화: {list(new_properties.keys())}")
         
-        if missing:
-            print(f"추가할 속성: {list(missing.keys())}")
-            client.databases.update(
-                database_id=database_id,
-                properties=missing
-            )
-            print("✅ 속성 추가 완료!")
-        else:
-            print("✅ 모든 속성이 이미 존재합니다!")
+        # 모든 속성을 비활성화 (None으로 설정)
+        all_properties = {}
+        for prop_name in current_props.keys():
+            all_properties[prop_name] = None
+        
+        # 새로운 속성들 활성화
+        for prop_name, prop_config in new_properties.items():
+            all_properties[prop_name] = prop_config
+        
+        client.databases.update(
+            database_id=database_id,
+            properties=all_properties
+        )
+        print("✅ 속성 구조 교체 완료!")
             
-        # 테스트 페이지 생성
+        # 테스트 페이지 생성 (실제 코드 구조에 맞게)
         print("🧪 테스트 페이지 생성...")
         page = client.pages.create(
             parent={"database_id": database_id},
