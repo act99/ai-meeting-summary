@@ -7,6 +7,7 @@ Audio Processing Module
 import librosa
 import numpy as np
 import noisereduce as nr
+import soundfile as sf
 from typing import Optional, Tuple
 from pathlib import Path
 
@@ -214,7 +215,7 @@ class AudioProcessor(LoggerMixin):
                 output_path = str(input_file.parent / f"enhanced_{input_file.name}")
             
             # 파일 저장
-            librosa.output.write_wav(output_path, enhanced_audio, sr)
+            sf.write(output_path, enhanced_audio, sr)
             
             # 처리된 오디오 정보
             enhanced_info = self.get_audio_info(enhanced_audio, sr)
@@ -266,5 +267,5 @@ class MeetingAudioProcessor(AudioProcessor):
         """처리된 오디오 저장"""
         original_file = Path(original_path)
         output_path = str(original_file.parent / f"processed_{original_file.name}")
-        librosa.output.write_wav(output_path, audio_data, sr)
+        sf.write(output_path, audio_data, sr)
         return output_path

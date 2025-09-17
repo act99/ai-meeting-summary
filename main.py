@@ -13,7 +13,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 from rich.panel import Panel
 from rich.table import Table
 
-from src.audio import AudioRecorder, AudioProcessor, MeetingRecorder
+from src.audio import AudioRecorder, AudioProcessor, MeetingRecorder, MeetingAudioProcessor
 from src.transcription import WhisperClient, TextFormatter, MeetingTranscriber
 from src.summarization import GPTClient, MeetingSummarizer, MeetingAnalyzer
 from src.notion import NotionClient, MeetingPageBuilder
@@ -95,7 +95,7 @@ def transcribe_file(
             
             # 오디오 처리
             task1 = progress.add_task("오디오 처리 중...", total=100)
-            processor = AudioProcessor()
+            processor = MeetingAudioProcessor()
             processed_file, chunks = processor.process_meeting_audio(audio_file)
             progress.update(task1, completed=100)
             
@@ -215,6 +215,168 @@ def summarize_meeting(
 
 
 @app.command()
+def interactive_meeting(
+    title: str = typer.Option("회의", help="회의 제목"),
+    duration: Optional[int] = typer.Option(None, help="녹음 시간 (분)"),
+    language: str = typer.Option("ko", help="언어 코드"),
+    save_to_notion: bool = typer.Option(True, help="Notion에 저장")
+):
+    """대화형 회의 파이프라인 (q 키로 중지 가능)"""
+    console.print(Panel("🎤 대화형 AI 회의 요약", style="bold blue"))
+    console.print("💡 회의 중 'q'를 두 번 누르면 회의를 종료하고 요약을 시작합니다.", style="yellow")
+    
+    try:
+        # 1단계: 녹음
+        console.print("\n🎤 1단계: 회의 녹음", style="bold yellow")
+        recorder = MeetingRecorder()
+        success = recorder.start_meeting_recording(title, duration)
+        
+        if not success:
+            console.print("❌ 녹음 시작 실패", style="red")
+            return
+        
+        console.print("✅ 녹음이 시작되었습니다.", style="green")
+        console.print("💡 회의 종료를 원하시면 'q'를 두 번 누르세요.", style="cyan")
+        
+        # 대화형 중지 처리
+        import sys
+        import select
+        import tty
+        import termios
+        
+        def get_key():
+            """키 입력 감지"""
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            try:
+                tty.setraw(sys.stdin.fileno())
+                ch = sys.stdin.read(1)
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+            return ch
+        
+        q_count = 0
+        try:
+            while recorder.recorder.is_recording:
+                import time
+                time.sleep(0.1)
+                
+                # 키 입력 확인 (논블로킹)
+                if select.select([sys.stdin], [], [], 0)[0]:
+                    key = get_key()
+                    if key.lower() == 'q':
+                        q_count += 1
+                        if q_count == 1:
+                            console.print(f"\n⚠️  회의를 종료하시겠습니까? 한 번 더 'q'를 누르면 회의를 종료하고 요약을 시작합니다.", style="yellow")
+                        elif q_count == 2:
+                            console.print(f"\n🛑 회의 종료 요청됨 - 요약을 시작합니다.", style="yellow")
+                            recorder.request_stop()
+                            break
+                    else:
+                        q_count = 0  # 다른 키를 누르면 카운트 리셋
+                        
+        except KeyboardInterrupt:
+            console.print(f"\n🛑 녹음 중지 요청됨", style="yellow")
+            recorder.request_stop()
+        
+        audio_file = recorder.stop_recording()
+        if not audio_file:
+            console.print("❌ 녹음 저장 실패", style="red")
+            return
+        
+        console.print(f"✅ 녹음 완료: {audio_file}", style="green")
+        
+        # 2단계: 오디오 처리 및 음성 인식
+        console.print("\n🎯 2단계: 음성 인식", style="bold yellow")
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TimeElapsedColumn(),
+            console=console
+        ) as progress:
+            
+            # 오디오 처리
+            task1 = progress.add_task("오디오 처리 중...", total=100)
+            processor = MeetingAudioProcessor()
+            processed_file, chunks = processor.process_meeting_audio(audio_file)
+            progress.update(task1, completed=100)
+            
+            # 음성 인식
+            task2 = progress.add_task("음성 인식 중...", total=100)
+            transcriber = MeetingTranscriber()
+            
+            if len(chunks) > 1:
+                chunk_paths = [processor._save_processed_audio(chunk, config.audio.sample_rate, f"chunk_{i}.wav") for i, chunk in enumerate(chunks)]
+                transcription_result = transcriber.transcribe_meeting_chunks(chunk_paths, language)
+            else:
+                transcription_result = transcriber.transcribe_meeting(processed_file, language)
+            
+            progress.update(task2, completed=100)
+        
+        # 텍스트 포맷팅
+        formatter = TextFormatter()
+        structured_content = formatter.structure_meeting_content(transcription_result)
+        console.print(f"✅ 음성 인식 완료: {structured_content['word_count']}단어", style="green")
+        
+        # 3단계: 요약 생성
+        console.print("\n🤖 3단계: 회의 요약", style="bold yellow")
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TimeElapsedColumn(),
+            console=console
+        ) as progress:
+            
+            # GPT 요약
+            task3 = progress.add_task("GPT 요약 생성 중...", total=100)
+            summarizer = MeetingSummarizer()
+            comprehensive_result = summarizer.summarize_meeting_comprehensive(structured_content)
+            progress.update(task3, completed=100)
+        
+        console.print(f"✅ 요약 완료: {len(comprehensive_result['action_items'])}개 액션 아이템", style="green")
+        
+        # 4단계: Notion 저장
+        if save_to_notion:
+            console.print("\n📝 4단계: Notion 저장", style="bold yellow")
+            
+            try:
+                page_builder = MeetingPageBuilder()
+                notion_result = page_builder.create_meeting_page(comprehensive_result)
+                console.print(f"✅ Notion 저장 완료: {notion_result['url']}", style="green")
+            except Exception as e:
+                console.print(f"⚠️ Notion 저장 실패: {e}", style="yellow")
+                console.print("로컬 파일로 저장합니다.", style="yellow")
+                
+                # 로컬 파일 저장
+                summarizer.save_summary_to_file(comprehensive_result, "comprehensive")
+                console.print("✅ 로컬 파일 저장 완료", style="green")
+        
+        # 최종 결과 표시
+        console.print(Panel("🎉 대화형 회의 파이프라인 완료!", style="bold green"))
+        
+        # 결과 테이블
+        table = Table(title="회의 요약 결과")
+        table.add_column("항목", style="cyan")
+        table.add_column("내용", style="white")
+        
+        table.add_row("회의 ID", comprehensive_result['meeting_id'])
+        table.add_row("지속시간", f"{structured_content['duration']:.1f}초")
+        table.add_row("단어 수", str(structured_content['word_count']))
+        table.add_row("액션 아이템", str(len(comprehensive_result['action_items'])))
+        table.add_row("결정사항", str(len(comprehensive_result['decisions'])))
+        
+        console.print(table)
+        
+    except Exception as e:
+        console.print(f"❌ 파이프라인 오류: {e}", style="red")
+        logger.error(f"파이프라인 오류: {e}")
+
+
+@app.command()
 def full_pipeline(
     title: str = typer.Option("회의", help="회의 제목"),
     duration: Optional[int] = typer.Option(None, help="녹음 시간 (분)"),
@@ -263,7 +425,7 @@ def full_pipeline(
             
             # 오디오 처리
             task1 = progress.add_task("오디오 처리 중...", total=100)
-            processor = AudioProcessor()
+            processor = MeetingAudioProcessor()
             processed_file, chunks = processor.process_meeting_audio(audio_file)
             progress.update(task1, completed=100)
             

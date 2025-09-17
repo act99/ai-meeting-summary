@@ -48,8 +48,8 @@ echo ""
 echo "🚀 회의 시작: $title ($duration분, $language)"
 echo ""
 
-# 전체 파이프라인 실행
-python main.py full-pipeline \
+# 대화형 파이프라인 실행 (q 키로 중지 가능)
+python main.py interactive-meeting \
     --title "$title" \
     --duration "$duration" \
     --language "$language" \

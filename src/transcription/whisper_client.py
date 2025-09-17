@@ -82,12 +82,33 @@ class WhisperClient(LoggerMixin):
                 timestamp_granularities=["word", "segment"]
             )
         
+        # 세그먼트를 딕셔너리로 변환
+        segments = []
+        if hasattr(transcript, 'segments') and transcript.segments:
+            for segment in transcript.segments:
+                segments.append({
+                    "start": getattr(segment, 'start', 0),
+                    "end": getattr(segment, 'end', 0),
+                    "text": getattr(segment, 'text', ''),
+                    "words": getattr(segment, 'words', [])
+                })
+        
+        # 단어를 딕셔너리로 변환
+        words = []
+        if hasattr(transcript, 'words') and transcript.words:
+            for word in transcript.words:
+                words.append({
+                    "word": getattr(word, 'word', ''),
+                    "start": getattr(word, 'start', 0),
+                    "end": getattr(word, 'end', 0)
+                })
+        
         return {
             "text": transcript.text,
             "language": transcript.language,
             "duration": transcript.duration,
-            "segments": getattr(transcript, 'segments', []),
-            "words": getattr(transcript, 'words', []),
+            "segments": segments,
+            "words": words,
             "method": "openai_api"
         }
     

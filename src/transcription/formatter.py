@@ -74,9 +74,16 @@ class TextFormatter(LoggerMixin):
             formatted_lines = []
             
             for segment in segments:
-                start_time = self._format_timestamp(segment.get("start", 0))
-                end_time = self._format_timestamp(segment.get("end", 0))
-                text = segment.get("text", "").strip()
+                # segment가 딕셔너리인지 객체인지 확인
+                if isinstance(segment, dict):
+                    start_time = self._format_timestamp(segment.get("start", 0))
+                    end_time = self._format_timestamp(segment.get("end", 0))
+                    text = segment.get("text", "").strip()
+                else:
+                    # TranscriptionSegment 객체인 경우
+                    start_time = self._format_timestamp(getattr(segment, "start", 0))
+                    end_time = self._format_timestamp(getattr(segment, "end", 0))
+                    text = getattr(segment, "text", "").strip()
                 
                 if text:
                     formatted_lines.append(f"[{start_time} - {end_time}] {text}")

@@ -85,8 +85,8 @@ class AudioRecorder(LoggerMixin):
         Returns:
             저장된 파일 경로 또는 None
         """
-        if not self.is_recording:
-            self.log_warning("녹음 중이 아닙니다")
+        if not self.is_recording and not self.audio_frames:
+            self.log_warning("녹음 중이 아니거나 녹음된 데이터가 없습니다")
             return None
         
         try:
@@ -212,6 +212,7 @@ class MeetingRecorder:
         self.recorder = AudioRecorder()
         self.meeting_title = "회의"
         self.meeting_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self._stop_requested = False
     
     def start_meeting_recording(
         self, 
@@ -220,6 +221,7 @@ class MeetingRecorder:
     ) -> bool:
         """회의 녹음 시작"""
         self.meeting_title = meeting_title
+        self._stop_requested = False
         
         def recording_progress(frame_count: int):
             duration_seconds = frame_count * self.recorder.chunk_size / self.recorder.sample_rate
@@ -234,6 +236,20 @@ class MeetingRecorder:
         """회의 녹음 중지"""
         print()  # 새 줄
         return self.recorder.stop_recording()
+    
+    def stop_recording(self) -> Optional[str]:
+        """녹음 중지 (호환성을 위한 별칭)"""
+        return self.stop_meeting_recording()
+    
+    def request_stop(self) -> None:
+        """녹음 중지 요청"""
+        self._stop_requested = True
+        if self.recorder.is_recording:
+            self.recorder.is_recording = False
+    
+    def is_stop_requested(self) -> bool:
+        """중지 요청 여부 확인"""
+        return self._stop_requested
     
     def get_meeting_info(self) -> dict:
         """회의 정보 반환"""
