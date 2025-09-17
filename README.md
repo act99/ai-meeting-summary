@@ -19,9 +19,35 @@ AI 기반 회의 녹음, 음성 인식, 요약 및 Notion 저장을 위한 종�
 git clone <repository-url>
 cd ai-meeting-summary
 
+# 가상환경 생성 및 활성화 (권장)
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
 # 의존성 설치
 pip install -r requirements.txt
 ```
+
+**또는 자동 설정 스크립트 사용:**
+```bash
+# 가상환경 자동 생성 및 활성화
+./activate.sh
+```
+
+#### 🍎 macOS 사용자 주의사항
+
+macOS에서 PyAudio 설치 시 PortAudio 라이브러리가 필요합니다:
+
+```bash
+# Homebrew로 PortAudio 설치
+brew install portaudio
+
+# 그 후 의존성 설치
+pip install -r requirements.txt
+```
+
+**설치 오류 시 해결 방법:**
+- `portaudio.h file not found` 오류: 위의 `brew install portaudio` 명령어 실행
+- Homebrew가 없는 경우: [Homebrew 설치](https://brew.sh/) 후 위 명령어 실행
 
 ### 2. 환경 설정
 
@@ -220,6 +246,9 @@ python main.py test-apis
 
 ### 일반적인 문제
 
+**Q: PyAudio 설치가 실패해요 (macOS)**
+A: PortAudio 라이브러리가 필요합니다. `brew install portaudio` 실행 후 다시 시도하세요.
+
 **Q: 녹음이 시작되지 않아요**
 A: 마이크 권한을 확인하고, 다른 애플리케이션이 마이크를 사용 중인지 확인하세요.
 
@@ -231,6 +260,9 @@ A: API 키와 데이터베이스 ID를 확인하고, Notion Integration에 적�
 
 **Q: 음성 인식 정확도가 낮아요**
 A: 배경 소음을 줄이고, 마이크에 가까이서 명확하게 발음하세요.
+
+**Q: 가상환경이 활성화되지 않아요**
+A: `source venv/bin/activate` 명령어를 실행하거나 `./activate.sh` 스크립트를 사용하세요.
 
 ### 로그 확인
 
