@@ -179,6 +179,12 @@ temp/
 *.log
 *.tmp
 
+# Shell scripts (keep them in git)
+# start_meeting.sh
+# quick_start.sh
+# activate.sh
+# setup_env.sh
+
 # API keys and sensitive data
 .env.local
 .env.production

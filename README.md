@@ -12,6 +12,24 @@ AI 기반 회의 녹음, 음성 인식, 요약 및 Notion 저장을 위한 종�
 
 ## 🚀 빠른 시작
 
+### 0. 환경 설정 (필수)
+
+먼저 API 키를 설정해야 합니다:
+
+```bash
+# 자동 설정 도우미 사용 (권장)
+./setup_env.sh
+
+# 또는 수동 설정
+cp env.example .env
+# .env 파일을 편집하여 API 키 입력
+```
+
+**필요한 API 키:**
+- `OPENAI_API_KEY`: OpenAI API 키
+- `NOTION_API_KEY`: Notion Integration Token  
+- `NOTION_DATABASE_ID`: Notion 데이터베이스 ID
+
 ### 1. 설치
 
 ```bash
@@ -49,40 +67,70 @@ pip install -r requirements.txt
 - `portaudio.h file not found` 오류: 위의 `brew install portaudio` 명령어 실행
 - Homebrew가 없는 경우: [Homebrew 설치](https://brew.sh/) 후 위 명령어 실행
 
-### 2. 환경 설정
+### 2. 첫 실행 테스트
+
+설치가 완료되면 API 연결을 테스트해보세요:
 
 ```bash
-# 환경 변수 파일 생성
-cp env.example .env
+# 가상환경 활성화
+source venv/bin/activate
 
-# .env 파일 편집하여 API 키 설정
-# - OPENAI_API_KEY: OpenAI API 키
-# - NOTION_API_KEY: Notion Integration Token
-# - NOTION_DATABASE_ID: Notion 데이터베이스 ID
+# API 연결 테스트
+python main.py test-apis
 ```
+
+모든 API가 정상적으로 연결되면 사용 준비 완료! 🎉
 
 ### 3. 사용법
 
-#### 전체 파이프라인 실행 (권장)
+#### 🎯 대화형 시작 (가장 쉬운 방법)
 ```bash
+# 대화형 스크립트로 회의 시작
+./start_meeting.sh
+```
+
+#### ⚡ 빠른 시작
+```bash
+# 간단한 질문으로 빠르게 시작
+./quick_start.sh
+```
+
+#### 🚀 수동 실행
+```bash
+# 가상환경 활성화
+source venv/bin/activate
+
+# 전체 파이프라인 실행 (녹음 → 인식 → 요약 → Notion 저장)
 python main.py full-pipeline --title "주간 회의" --duration 30
 ```
 
-#### 단계별 실행
+#### 📋 단계별 실행
 ```bash
-# 1. 회의 녹음
+# 1. 회의 녹음만
 python main.py record-meeting --title "주간 회의" --duration 30
 
-# 2. 음성 인식
+# 2. 기존 오디오 파일 음성 인식
 python main.py transcribe-file audio_file.wav
 
-# 3. 요약 생성
+# 3. 음성 인식 결과 요약 생성
 python main.py summarize-meeting transcription.txt --save-to-notion
+```
+
+#### 🔧 유틸리티 명령어
+```bash
+# API 연결 테스트
+python main.py test-apis
+
+# 저장된 회의 목록 조회
+python main.py list-meetings
+
+# 도움말 보기
+python main.py --help
 ```
 
 ## 📋 명령어 가이드
 
-### `record-meeting`
+### 🎤 `record-meeting`
 회의를 녹음합니다.
 
 ```bash
@@ -92,9 +140,13 @@ Options:
   --title TEXT        회의 제목 [default: 회의]
   --duration INTEGER  녹음 시간 (분)
   --output-file TEXT  출력 파일 경로
+
+# 예시
+python main.py record-meeting --title "주간 회의" --duration 30
+python main.py record-meeting --title "프로젝트 리뷰" --output-file meeting.wav
 ```
 
-### `transcribe-file`
+### 🎯 `transcribe-file`
 오디오 파일을 텍스트로 변환합니다.
 
 ```bash
@@ -103,9 +155,13 @@ python main.py transcribe-file AUDIO_FILE [OPTIONS]
 Options:
   --language TEXT      언어 코드 [default: ko]
   --output-file TEXT   출력 파일 경로
+
+# 예시
+python main.py transcribe-file meeting.wav
+python main.py transcribe-file audio.mp3 --language en --output-file transcript.txt
 ```
 
-### `summarize-meeting`
+### 🤖 `summarize-meeting`
 회의 내용을 요약합니다.
 
 ```bash
@@ -114,9 +170,13 @@ python main.py summarize-meeting TRANSCRIPTION_FILE [OPTIONS]
 Options:
   --output-file TEXT    출력 파일 경로
   --save-to-notion      Notion에 저장
+
+# 예시
+python main.py summarize-meeting transcript.txt --save-to-notion
+python main.py summarize-meeting transcript.txt --output-file summary.md
 ```
 
-### `full-pipeline`
+### 🚀 `full-pipeline`
 전체 파이프라인을 한 번에 실행합니다.
 
 ```bash
@@ -127,9 +187,13 @@ Options:
   --duration INTEGER    녹음 시간 (분)
   --language TEXT       언어 코드 [default: ko]
   --save-to-notion      Notion에 저장 [default: True]
+
+# 예시
+python main.py full-pipeline --title "주간 회의" --duration 30
+python main.py full-pipeline --title "프로젝트 리뷰" --language en --save-to-notion
 ```
 
-### 기타 명령어
+### 🔧 유틸리티 명령어
 
 ```bash
 # API 연결 테스트
@@ -137,6 +201,10 @@ python main.py test-apis
 
 # 저장된 회의 목록 조회
 python main.py list-meetings
+
+# 도움말 보기
+python main.py --help
+python main.py [COMMAND] --help  # 특정 명령어 도움말
 ```
 
 ## 🏗️ 프로젝트 구조
