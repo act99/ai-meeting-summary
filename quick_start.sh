@@ -46,7 +46,7 @@ language=${language:-ko}  # 기본값: 한국어
 
 echo ""
 echo "🎯 음성 인식 방법을 선택하세요:"
-echo "1) 로컬 Whisper (무료, 정확도 96%) [기본값]"
+echo "1) 로컬 Whisper (무료, 정확도 91%, 빠른 처리) [기본값]"
 echo "2) OpenAI API (유료, 정확도 98%)"
 
 read -p "선택 (1-2, 기본값: 1): " whisper_choice
@@ -54,7 +54,7 @@ whisper_choice=${whisper_choice:-1}  # 기본값: 1 (로컬)
 
 if [ "$whisper_choice" = "1" ]; then
     echo "✅ 로컬 Whisper 선택 - 비용 $0 (완전 무료)"
-    echo "🚀 최고 사양 모델 (large) 사용 - 정확도 96%"
+    echo "🚀 실용적 모델 (small) 사용 - 정확도 91%, 빠른 처리"
     whisper_option="--local-only"
 else
     echo "✅ OpenAI API 선택 - 비용 발생"

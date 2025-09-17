@@ -44,7 +44,7 @@ echo ""
 
 # Whisper 모델 다운로드 옵션
 echo "🎯 Whisper 모델 다운로드 옵션:"
-echo "1) 최고 사양 모델 다운로드 (권장) - 정확도 96%, 비용 $0"
+echo "1) 실용적 모델 다운로드 (권장) - 정확도 91%, 빠른 처리, 비용 $0"
 echo "2) 나중에 다운로드 - 첫 실행 시 자동 다운로드"
 echo "3) 건너뛰기"
 
@@ -53,8 +53,8 @@ whisper_choice=${whisper_choice:-1}
 
 if [ "$whisper_choice" = "1" ]; then
     echo ""
-    echo "🚀 최고 사양 Whisper 모델 다운로드 시작..."
-    echo "⏰ 예상 시간: 5-10분"
+    echo "🚀 실용적 Whisper 모델 다운로드 시작..."
+    echo "⏰ 예상 시간: 2-5분"
     echo ""
     
     python3 << 'EOF'
@@ -64,9 +64,9 @@ from rich.console import Console
 console = Console()
 
 try:
-    console.print("📦 Whisper Large 모델 다운로드 중... (1.5GB)", style="bold blue")
-    model = whisper.load_model("large")
-    console.print("✅ 최고 사양 모델 준비 완료! 정확도 96%, 비용 $0", style="bold green")
+    console.print("📦 Whisper Small 모델 다운로드 중... (244MB)", style="bold blue")
+    model = whisper.load_model("small")
+    console.print("✅ 실용적 모델 준비 완료! 정확도 91%, 빠른 처리, 비용 $0", style="bold green")
 except Exception as e:
     console.print(f"❌ 다운로드 실패: {e}", style="red")
     console.print("💡 나중에 ./setup_whisper.sh로 다운로드할 수 있습니다.", style="yellow")

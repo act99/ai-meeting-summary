@@ -20,7 +20,7 @@ from ..utils.config import config
 class WhisperClient(LoggerMixin):
     """Whisper API 클라이언트"""
     
-    def __init__(self, model_size: str = "large"):
+    def __init__(self, model_size: str = "small"):
         self.model_size = model_size
         self.model = None
         self.openai_client = None
@@ -32,12 +32,12 @@ class WhisperClient(LoggerMixin):
             # OpenAI 클라이언트 초기화
             self.openai_client = openai.OpenAI(api_key=config.api.openai_api_key)
             
-            # 로컬 Whisper 모델 로드 (최고 사양 large 모델)
-            self.log_info(f"🚀 최고 사양 Whisper 모델 로딩 중: {self.model_size}")
-            self.log_info("💡 정확도 96% - 비용 $0 (완전 무료)")
+            # 로컬 Whisper 모델 로드 (실용적 small 모델)
+            self.log_info(f"🚀 실용적 Whisper 모델 로딩 중: {self.model_size}")
+            self.log_info("💡 정확도 91% - 비용 $0 (완전 무료) - 빠른 처리")
             self.model = whisper.load_model(self.model_size)
             
-            self.log_info("✅ 최고 사양 Whisper 모델 준비 완료!")
+            self.log_info("✅ 실용적 Whisper 모델 준비 완료!")
             
         except Exception as e:
             self.log_error(f"Whisper 클라이언트 초기화 실패: {e}")
@@ -250,7 +250,7 @@ class WhisperClient(LoggerMixin):
 class MeetingTranscriber(WhisperClient):
     """회의 전용 음성 인식 클래스"""
     
-    def __init__(self, model_size: str = "large"):
+    def __init__(self, model_size: str = "small"):
         super().__init__(model_size)
         self.meeting_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     
